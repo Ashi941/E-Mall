@@ -9,15 +9,16 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+AUTH_USER_MODEL = 'user.User'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -41,7 +42,21 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "user",
     "rest_framework",
+    'django_rest_passwordreset',
+    'products',
+    'orders',
+
 ]
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -78,7 +93,7 @@ WSGI_APPLICATION = "emall.wsgi.application"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-       'default': {
+    'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
@@ -86,9 +101,7 @@ DATABASES = {
         'HOST': config('DB_HOST'),
         'PORT': config('DB_PORT')
     }
-    }
-    
-
+}
 
 
 # Password validation
@@ -125,7 +138,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "static/"
+# Local storage settings
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'media')
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -133,15 +151,13 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        
+
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
-    
+
 }
-
-
 
 
 # Django project settings.py
@@ -184,3 +200,53 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
+# Send Emails using  SMTP Credentials or APIKeys (Mailjet / mailGun etc..)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
+            'datefmt': "%d/%b/%Y %H:%M:%S"
+        },
+    },
+    'handlers': {
+        'access': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'access.log'),
+            'formatter': 'verbose'
+        },
+        'error': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'error.log'),
+            'formatter': 'verbose'
+        },
+        'debug': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'debug.log'),
+            'formatter': 'verbose'
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'stream': sys.stdout
+        }
+    },
+    'loggers': {
+        '': {  # Root logger, captures all logs
+            'handlers': ['access', 'error', 'debug', 'console'],
+            'level': 'DEBUG',
+        },
+    }
+}
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Change Backend to Django Anymail or SMTP Emails.
+# Send Emails using  SMTP Credentials or APIKeys (Mailjet / mailGun etc..)
